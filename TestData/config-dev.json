@@ -1,0 +1,5 @@
+{
+  "baseUrl": "https://www.saucedemo.com/",
+  "explicitWait": 15,
+  "screenshotPath": "target/screenshots"
+}
