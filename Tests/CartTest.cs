@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using Lab9Automation.Framework.Base;
 using Lab9Automation.Framework.Pages;
-
+using Lab9Automation.Framework.Config;
 namespace Lab9Automation.Tests
 {
     [TestFixture]
@@ -13,7 +13,7 @@ namespace Lab9Automation.Tests
             LoginPage loginPage = new LoginPage(Driver);
 
             CartPage cartPage = loginPage
-                .Login("standard_user", "secret_sauce")
+                .Login(CredentialProvider.GetUsername(), CredentialProvider.GetPassword())
                 .AddFirstItemToCart()
                 .GoToCart();
 
@@ -26,7 +26,7 @@ namespace Lab9Automation.Tests
             LoginPage loginPage = new LoginPage(Driver);
 
             CartPage cartPage = loginPage
-                .Login("standard_user", "secret_sauce")
+                .Login(CredentialProvider.GetUsername(), CredentialProvider.GetPassword())
                 .AddItemByName("Sauce Labs Backpack")
                 .GoToCart();
 
@@ -40,7 +40,7 @@ namespace Lab9Automation.Tests
             LoginPage loginPage = new LoginPage(Driver);
 
             CartPage cartPage = loginPage
-                .Login("standard_user", "secret_sauce")
+                .Login(CredentialProvider.GetUsername(), CredentialProvider.GetPassword())
                 .AddFirstItemToCart()
                 .GoToCart()
                 .RemoveFirstItem();

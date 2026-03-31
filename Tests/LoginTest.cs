@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using Lab9Automation.Framework.Base;
 using Lab9Automation.Framework.Pages;
-
+using Lab9Automation.Framework.Config;
 namespace Lab9Automation.Tests
 {
     [TestFixture]
@@ -11,7 +11,7 @@ namespace Lab9Automation.Tests
         public void Login_Success()
         {
             LoginPage loginPage = new LoginPage(Driver);
-            InventoryPage inventoryPage = loginPage.Login("standard_user", "secret_sauce");
+            InventoryPage inventoryPage = loginPage.Login(CredentialProvider.GetUsername(), CredentialProvider.GetPassword());
 
             Assert.That(inventoryPage.IsLoaded(), Is.True, "Trang inventory chưa load thành công.");
         }
