@@ -22,74 +22,44 @@ namespace Lab9Automation.Framework.Pages
             return IsElementVisible(inventoryList);
         }
 
-public InventoryPage AddFirstItemToCart()
-{
-    WaitForPageLoad();
-
-    var items = wait.Until(drv =>
-    {
-        var elements = drv.FindElements(inventoryItems);
-        return elements.Count > 0 ? elements : null;
-    });
-
-    var firstButton = items[0].FindElement(By.TagName("button"));
-    wait.Until(_ => firstButton.Displayed && firstButton.Enabled);
-
-    firstButton.Click();
-
-    wait.Until(_ =>
-    {
-        try
+        public InventoryPage AddFirstItemToCart()
         {
-            return firstButton.Text.Trim().Equals("Remove", StringComparison.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return false;
-        }
-    });
+            WaitForPageLoad();
 
-    return this;
-}
-       public InventoryPage AddItemByName(string name)
-{
-    WaitForPageLoad();
+            wait.Until(ExpectedConditions.VisibilityOfAllElementsLocatedBy(inventoryItems));
 
-    var items = wait.Until(drv =>
-    {
-        var elements = drv.FindElements(inventoryItems);
-        return elements.Count > 0 ? elements : null;
-    });
-
-    foreach (var item in items)
-    {
-        string itemName = item.FindElement(By.CssSelector(".inventory_item_name")).Text.Trim();
-
-        if (itemName.Equals(name, StringComparison.OrdinalIgnoreCase))
-        {
-            var button = item.FindElement(By.TagName("button"));
-            wait.Until(_ => button.Displayed && button.Enabled);
-
-            button.Click();
-
-            wait.Until(_ =>
+            var addButtons = wait.Until(drv =>
             {
-                try
-                {
-                    return button.Text.Trim().Equals("Remove", StringComparison.OrdinalIgnoreCase);
-                }
-                catch
-                {
-                    return false;
-                }
+                var buttons = drv.FindElements(By.CssSelector("button[id^='add-to-cart-']"));
+                return buttons.Count > 0 ? buttons : null;
+            });
+
+            addButtons[0].Click();
+
+            wait.Until(drv =>
+            {
+                var removeButtons = drv.FindElements(By.CssSelector("button[id^='remove-']"));
+                return removeButtons.Count > 0;
             });
 
             return this;
         }
-    }
 
-    throw new NoSuchElementException($"Không tìm thấy sản phẩm có tên: {name}");
-}
+        public InventoryPage AddItemByName(string name)
+        {
+            WaitForPageLoad();
+
+            string slug = name.Trim().ToLower().Replace(" ", "-");
+            By addButtonBy = By.Id($"add-to-cart-{slug}");
+            By removeButtonBy = By.Id($"remove-{slug}");
+
+            IWebElement addButton = wait.Until(ExpectedConditions.ElementToBeClickable(addButtonBy));
+            addButton.Click();
+
+            wait.Until(ExpectedConditions.ElementExists(removeButtonBy));
+
+            return this;
+        }
 
         public int GetCartItemCount()
         {
@@ -113,7 +83,5 @@ public InventoryPage AddFirstItemToCart()
             WaitAndClick(cartLink);
             return new CartPage(driver);
         }
-
-      
     }
 }

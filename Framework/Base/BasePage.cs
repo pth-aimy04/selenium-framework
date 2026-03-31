@@ -14,20 +14,18 @@ namespace Lab9Automation.Framework.Base
         {
             this.driver = driver;
             wait = new WebDriverWait(driver, TimeSpan.FromSeconds(ConfigReader.ExplicitWait));
+            wait.IgnoreExceptionTypes(
+                typeof(NoSuchElementException),
+                typeof(StaleElementReferenceException)
+            );
         }
 
-        /// <summary>
-        /// Chờ phần tử có thể click rồi thực hiện click.
-        /// </summary>
         protected void WaitAndClick(By locator)
         {
             IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(locator));
             element.Click();
         }
 
-        /// <summary>
-        /// Chờ phần tử hiển thị, xóa dữ liệu cũ rồi nhập dữ liệu mới.
-        /// </summary>
         protected void WaitAndType(By locator, string text)
         {
             IWebElement element = wait.Until(ExpectedConditions.ElementIsVisible(locator));
@@ -35,18 +33,12 @@ namespace Lab9Automation.Framework.Base
             element.SendKeys(text);
         }
 
-        /// <summary>
-        /// Lấy text của phần tử sau khi phần tử hiển thị.
-        /// </summary>
         protected string GetText(By locator)
         {
             IWebElement element = wait.Until(ExpectedConditions.ElementIsVisible(locator));
             return element.Text.Trim();
         }
 
-        /// <summary>
-        /// Kiểm tra phần tử có hiển thị hay không, có xử lý stale element.
-        /// </summary>
         protected bool IsElementVisible(By locator)
         {
             try
@@ -75,9 +67,6 @@ namespace Lab9Automation.Framework.Base
             }
         }
 
-        /// <summary>
-        /// Cuộn đến phần tử bằng JavaScript.
-        /// </summary>
         protected void ScrollToElement(By locator)
         {
             IWebElement element = wait.Until(ExpectedConditions.ElementExists(locator));
@@ -85,18 +74,12 @@ namespace Lab9Automation.Framework.Base
             js.ExecuteScript("arguments[0].scrollIntoView({block:'center'});", element);
         }
 
-        /// <summary>
-        /// Chờ cho trang load hoàn tất với document.readyState = complete.
-        /// </summary>
         protected void WaitForPageLoad()
         {
             IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
             wait.Until(_ => js.ExecuteScript("return document.readyState")?.ToString() == "complete");
         }
 
-        /// <summary>
-        /// Lấy giá trị attribute của phần tử.
-        /// </summary>
         protected string GetAttribute(By locator, string attributeName)
         {
             IWebElement element = wait.Until(ExpectedConditions.ElementIsVisible(locator));
