@@ -1,4 +1,6 @@
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+using SeleniumExtras.WaitHelpers;
 using Lab9Automation.Framework.Base;
 
 namespace Lab9Automation.Framework.Pages
@@ -22,18 +24,35 @@ namespace Lab9Automation.Framework.Pages
 
         public InventoryPage AddFirstItemToCart()
         {
-            var items = driver.FindElements(inventoryItems);
-            if (items.Count > 0)
+            WaitForPageLoad();
+
+            var items = wait.Until(drv =>
             {
-                var firstButton = items[0].FindElement(By.TagName("button"));
-                firstButton.Click();
-            }
+                var elements = drv.FindElements(inventoryItems);
+                return elements.Count > 0 ? elements : null;
+            });
+
+            int beforeCount = GetCartItemCount();
+
+            var firstButton = items[0].FindElement(By.TagName("button"));
+            wait.Until(_ => firstButton.Displayed && firstButton.Enabled);
+            firstButton.Click();
+
+            WaitUntilCartCountChanges(beforeCount);
             return this;
         }
 
         public InventoryPage AddItemByName(string name)
         {
-            var items = driver.FindElements(inventoryItems);
+            WaitForPageLoad();
+
+            var items = wait.Until(drv =>
+            {
+                var elements = drv.FindElements(inventoryItems);
+                return elements.Count > 0 ? elements : null;
+            });
+
+            int beforeCount = GetCartItemCount();
 
             foreach (var item in items)
             {
@@ -41,22 +60,27 @@ namespace Lab9Automation.Framework.Pages
 
                 if (itemName.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
-                    item.FindElement(By.TagName("button")).Click();
-                    break;
+                    var button = item.FindElement(By.TagName("button"));
+                    wait.Until(_ => button.Displayed && button.Enabled);
+                    button.Click();
+
+                    WaitUntilCartCountChanges(beforeCount);
+                    return this;
                 }
             }
 
-            return this;
+            throw new NoSuchElementException($"Không tìm thấy sản phẩm có tên: {name}");
         }
 
         public int GetCartItemCount()
         {
             try
             {
-                if (!IsElementVisible(cartBadge))
+                var badges = driver.FindElements(cartBadge);
+                if (badges.Count == 0)
                     return 0;
 
-                string text = GetText(cartBadge);
+                string text = badges[0].Text.Trim();
                 return int.TryParse(text, out int count) ? count : 0;
             }
             catch
@@ -69,6 +93,11 @@ namespace Lab9Automation.Framework.Pages
         {
             WaitAndClick(cartLink);
             return new CartPage(driver);
+        }
+
+        private void WaitUntilCartCountChanges(int oldCount)
+        {
+            wait.Until(_ => GetCartItemCount() > oldCount);
         }
     }
 }

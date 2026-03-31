@@ -8,6 +8,7 @@ namespace Lab9Automation.Framework.Pages
         private readonly By cartItems = By.CssSelector(".cart_item");
         private readonly By removeButtons = By.CssSelector(".cart_button");
         private readonly By checkoutButton = By.Id("checkout");
+        private readonly By cartList = By.CssSelector(".cart_list");
 
         public CartPage(IWebDriver driver) : base(driver)
         {
@@ -15,29 +16,16 @@ namespace Lab9Automation.Framework.Pages
 
         public int GetItemCount()
         {
-            try
-            {
-                var items = driver.FindElements(cartItems);
-                return items.Count;
-            }
-            catch
-            {
-                return 0;
-            }
+            WaitForPageLoad();
+            return driver.FindElements(cartItems).Count;
         }
 
         public CartPage RemoveFirstItem()
         {
-            try
+            var buttons = driver.FindElements(removeButtons);
+            if (buttons.Count > 0)
             {
-                var buttons = driver.FindElements(removeButtons);
-                if (buttons.Count > 0)
-                {
-                    buttons[0].Click();
-                }
-            }
-            catch
-            {
+                buttons[0].Click();
             }
 
             return this;
@@ -53,17 +41,11 @@ namespace Lab9Automation.Framework.Pages
         {
             List<string> names = new List<string>();
 
-            try
+            var items = driver.FindElements(cartItems);
+            foreach (var item in items)
             {
-                var items = driver.FindElements(cartItems);
-                foreach (var item in items)
-                {
-                    string name = item.FindElement(By.CssSelector(".inventory_item_name")).Text.Trim();
-                    names.Add(name);
-                }
-            }
-            catch
-            {
+                string name = item.FindElement(By.CssSelector(".inventory_item_name")).Text.Trim();
+                names.Add(name);
             }
 
             return names;
