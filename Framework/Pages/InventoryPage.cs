@@ -10,7 +10,6 @@ namespace Lab9Automation.Framework.Pages
         private readonly By inventoryList = By.CssSelector(".inventory_list");
         private readonly By cartBadge = By.CssSelector(".shopping_cart_badge");
         private readonly By cartLink = By.CssSelector(".shopping_cart_link");
-        private readonly By inventoryItems = By.CssSelector(".inventory_item");
 
         public InventoryPage(IWebDriver driver) : base(driver)
         {
@@ -26,20 +25,15 @@ namespace Lab9Automation.Framework.Pages
         {
             WaitForPageLoad();
 
-            wait.Until(ExpectedConditions.VisibilityOfAllElementsLocatedBy(inventoryItems));
+            By firstAddButtonBy = By.CssSelector("button[id^='add-to-cart-']");
+            IWebElement button = wait.Until(ExpectedConditions.ElementToBeClickable(firstAddButtonBy));
 
-            var addButtons = wait.Until(drv =>
-            {
-                var buttons = drv.FindElements(By.CssSelector("button[id^='add-to-cart-']"));
-                return buttons.Count > 0 ? buttons : null;
-            });
-
-            addButtons[0].Click();
+            SafeClick(button);
 
             wait.Until(drv =>
             {
-                var removeButtons = drv.FindElements(By.CssSelector("button[id^='remove-']"));
-                return removeButtons.Count > 0;
+                var badges = drv.FindElements(cartBadge);
+                return badges.Count > 0 && badges[0].Text.Trim() == "1";
             });
 
             return this;
@@ -51,12 +45,16 @@ namespace Lab9Automation.Framework.Pages
 
             string slug = name.Trim().ToLower().Replace(" ", "-");
             By addButtonBy = By.Id($"add-to-cart-{slug}");
-            By removeButtonBy = By.Id($"remove-{slug}");
 
-            IWebElement addButton = wait.Until(ExpectedConditions.ElementToBeClickable(addButtonBy));
-            addButton.Click();
+            IWebElement button = wait.Until(ExpectedConditions.ElementToBeClickable(addButtonBy));
 
-            wait.Until(ExpectedConditions.ElementExists(removeButtonBy));
+            SafeClick(button);
+
+            wait.Until(drv =>
+            {
+                var badges = drv.FindElements(cartBadge);
+                return badges.Count > 0 && badges[0].Text.Trim() == "1";
+            });
 
             return this;
         }
@@ -80,8 +78,24 @@ namespace Lab9Automation.Framework.Pages
 
         public CartPage GoToCart()
         {
-            WaitAndClick(cartLink);
+            wait.Until(ExpectedConditions.ElementToBeClickable(cartLink)).Click();
             return new CartPage(driver);
+        }
+
+        private void SafeClick(IWebElement element)
+        {
+            IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+
+            try
+            {
+                js.ExecuteScript("arguments[0].scrollIntoView({block:'center'});", element);
+                wait.Until(_ => element.Displayed && element.Enabled);
+                element.Click();
+            }
+            catch
+            {
+                js.ExecuteScript("arguments[0].click();", element);
+            }
         }
     }
 }
