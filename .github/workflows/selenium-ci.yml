@@ -11,6 +11,11 @@ jobs:
   test:
     runs-on: windows-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, edge]
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -18,7 +23,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
 
       - name: Restore dependencies
         run: dotnet restore Lab9Automation.sln
@@ -27,14 +32,14 @@ jobs:
         run: dotnet build Lab9Automation.sln --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test Lab9Automation.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test Lab9Automation.sln --configuration Release --no-build --logger "trx;LogFileName=test-results-${{ matrix.browser }}.trx"
 
       - name: Upload test results if failed
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ matrix.browser }}
           path: |
             **/*.trx
-            Screenshots/**
-            screenshots/**
+            **/Screenshots/**
+            **/screenshots/**

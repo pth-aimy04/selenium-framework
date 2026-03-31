@@ -22,11 +22,14 @@ namespace Lab9Automation.Framework.Base
             ConfigReader.Load(env);
 
             IWebDriver driver = DriverFactory.CreateDriver(browser);
-            driver.Manage().Window.Maximize();
-
             tlDriver.Value = driver;
 
+            Driver.Manage().Window.Maximize();
+
+            Console.WriteLine($"[DEBUG] Browser = {browser}");
+            Console.WriteLine($"[DEBUG] Env = {env}");
             Console.WriteLine($"[DEBUG] BaseUrl = {ConfigReader.BaseUrl}");
+
             Driver.Navigate().GoToUrl(ConfigReader.BaseUrl);
         }
 
@@ -35,10 +38,15 @@ namespace Lab9Automation.Framework.Base
         {
             try
             {
-                if (TestContext.CurrentContext.Result.Outcome.Status == TestStatus.Failed && tlDriver.Value != null)
+                if (tlDriver.Value != null &&
+                    TestContext.CurrentContext.Result.Outcome.Status == TestStatus.Failed)
                 {
                     ScreenshotUtil.Capture(Driver, TestContext.CurrentContext.Test.Name);
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WARN] TearDown error: {ex.Message}");
             }
             finally
             {
